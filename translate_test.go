@@ -19,35 +19,28 @@ import (
 	"testing"
 
 	"k8s.io/api/core/v1"
-	"k8s.io/kubernetes/pkg/volume"
 )
 
 func TestTranslationStability(t *testing.T) {
 	testCases := []struct {
-		name string
-		spec *volume.Spec
+		name   string
+		source *v1.PersistentVolumeSource
 	}{
 		{
 			name: "GCE PD PV Source",
-			spec: &volume.Spec{
-				PersistentVolume: &v1.PersistentVolume{
-					Spec: v1.PersistentVolumeSpec{
-						PersistentVolumeSource: v1.PersistentVolumeSource{
-							GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
-								PDName:    "test-disk",
-								FSType:    "ext4",
-								Partition: 0,
-								ReadOnly:  false,
-							},
-						},
-					},
+			source: &v1.PersistentVolumeSource{
+				GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
+					PDName:    "test-disk",
+					FSType:    "ext4",
+					Partition: 0,
+					ReadOnly:  false,
 				},
 			},
 		},
 	}
 	for _, test := range testCases {
 		t.Logf("Testing %v", test.name)
-		csiSource, err := TranslateToCSI(test.spec)
+		csiSource, err := TranslateToCSI(test.source)
 		if err != nil {
 			t.Errorf("Error when translating to CSI: %v", err)
 		}
@@ -55,8 +48,8 @@ func TestTranslationStability(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error when translating CSI Source to in tree volume: %v", err)
 		}
-		if !reflect.DeepEqual(newSpec, test.spec) {
-			t.Errorf("Volumes after translation and back not equal:\n\nOriginal Volume: %#v\n\nRound-trip Volume: %#v", test.spec, newSpec)
+		if !reflect.DeepEqual(newSpec, test.source) {
+			t.Errorf("Volumes after translation and back not equal:\n\nOriginal Volume: %#v\n\nRound-trip Volume: %#v", test.source, newSpec)
 		}
 	}
 

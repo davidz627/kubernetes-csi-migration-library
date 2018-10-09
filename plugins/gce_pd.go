@@ -19,7 +19,6 @@ import (
 	"strconv"
 
 	"k8s.io/api/core/v1"
-	"k8s.io/kubernetes/pkg/volume"
 
 	"sigs.k8s.io/gcp-compute-persistent-disk-csi-driver/pkg/common"
 )
@@ -33,11 +32,11 @@ type GCEPD struct{}
 // TranslateToCSI takes a volume.Spec and will translate it to a
 // CSIPersistentVolumeSource if the translation logic for that
 // specific in-tree volume spec has been implemented
-func (g *GCEPD) TranslateToCSI(spec *volume.Spec) (*v1.CSIPersistentVolumeSource, error) {
+func (g *GCEPD) TranslateToCSI(pvSource *v1.PersistentVolumeSource) (*v1.CSIPersistentVolumeSource, error) {
 	// TODO: Check PV Failure domain zone, theres a util function "isregionalPD" or something
 	// that can tell me whether this is regional or not
-	if spec.PersistentVolume != nil && spec.PersistentVolume.Spec.GCEPersistentDisk != nil {
-		pdSource := spec.PersistentVolume.Spec.GCEPersistentDisk
+	if pvSource != nil && pvSource.GCEPersistentDisk != nil {
+		pdSource := pvSource.GCEPersistentDisk
 		csiSource := &v1.CSIPersistentVolumeSource{
 			Driver:       GCEPDDriverName,
 			VolumeHandle: common.GenerateUnderspecifiedVolumeID(pdSource.PDName, true /* isZonal */),
@@ -48,47 +47,39 @@ func (g *GCEPD) TranslateToCSI(spec *volume.Spec) (*v1.CSIPersistentVolumeSource
 			},
 		}
 		return csiSource, nil
-	} else if spec.Volume != nil && spec.Volume.GCEPersistentDisk != nil {
-		return nil, fmt.Errorf("In-line volume migration is not yet supported")
 	}
-	return nil, fmt.Errorf("spec %v does not represent a GCE PD Volume", spec)
+	return nil, fmt.Errorf("spec %v does not represent a GCE PD Persistent Volume", pvSource)
 }
 
 // TranslateToIntree takes a CSIPersistentVolumeSource and will translate
 // it to a volume.Spec for the specific in-tree volume specified by
 //`inTreePlugin`, if that translation logic has been implemented
-func (g *GCEPD) TranslateToInTree(source *v1.CSIPersistentVolumeSource) (*volume.Spec, error) {
+func (g *GCEPD) TranslateToInTree(source *v1.CSIPersistentVolumeSource) (*v1.PersistentVolumeSource, error) {
 	key, err := common.VolumeIDToKey(source.VolumeHandle)
 	if err != nil {
 		return nil, fmt.Errorf("failed to translate volume handle %v to key: %v", source.VolumeHandle, err)
 	}
-	spec := &volume.Spec{
-		PersistentVolume: &v1.PersistentVolume{
-			Spec: v1.PersistentVolumeSpec{
-				PersistentVolumeSource: v1.PersistentVolumeSource{
-					GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
-						PDName:   key.Name,
-						FSType:   source.FSType,
-						ReadOnly: source.ReadOnly,
-					},
-				},
-			},
+	pvSource := &v1.PersistentVolumeSource{
+		GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
+			PDName:   key.Name,
+			FSType:   source.FSType,
+			ReadOnly: source.ReadOnly,
 		},
 	}
+
 	if partition, ok := source.VolumeAttributes["partition"]; ok {
 		partInt, err := strconv.Atoi(partition)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert partition %v to integer: %v", partition, err)
 		}
-		spec.PersistentVolume.Spec.PersistentVolumeSource.GCEPersistentDisk.Partition = int32(partInt)
+		pvSource.GCEPersistentDisk.Partition = int32(partInt)
 	}
-	return spec, nil
+	return pvSource, nil
 }
 
 // CanSupport tests whether the plugin supports a given volume
 // specification from the API.  The spec pointer should be considered
 // const.
-func (g *GCEPD) CanSupport(spec *volume.Spec) bool {
-	return (spec.PersistentVolume != nil && spec.PersistentVolume.Spec.GCEPersistentDisk != nil) ||
-		(spec.Volume != nil && spec.Volume.GCEPersistentDisk != nil)
+func (g *GCEPD) CanSupport(source *v1.PersistentVolumeSource) bool {
+	return (source != nil && source.GCEPersistentDisk != nil)
 }

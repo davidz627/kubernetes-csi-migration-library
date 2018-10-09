@@ -19,7 +19,6 @@ import (
 
 	"github.com/davidz627/kubernetes-csi-migration-library/plugins"
 	"k8s.io/api/core/v1"
-	"k8s.io/kubernetes/pkg/volume"
 )
 
 var (
@@ -31,19 +30,19 @@ var (
 // TranslateToCSI takes a volume.Spec and will translate it to a
 // CSIPersistentVolumeSource if the translation logic for that
 // specific in-tree volume spec has been implemented
-func TranslateToCSI(spec *volume.Spec) (*v1.CSIPersistentVolumeSource, error) {
+func TranslateToCSI(source *v1.PersistentVolumeSource) (*v1.CSIPersistentVolumeSource, error) {
 	for _, curPlugin := range inTreePlugins {
-		if curPlugin.CanSupport(spec) {
-			return curPlugin.TranslateToCSI(spec)
+		if curPlugin.CanSupport(source) {
+			return curPlugin.TranslateToCSI(source)
 		}
 	}
-	return nil, fmt.Errorf("could not find in-tree plugin translation logic for %#v", spec)
+	return nil, fmt.Errorf("could not find in-tree plugin translation logic for %#v", source)
 }
 
 // TranslateToIntree takes a CSIPersistentVolumeSource and will translate
 // it to a volume.Spec for the specific in-tree volume specified by
 //`inTreePlugin`, if that translation logic has been implemented
-func TranslateToInTree(source *v1.CSIPersistentVolumeSource) (*volume.Spec, error) {
+func TranslateToInTree(source *v1.CSIPersistentVolumeSource) (*v1.PersistentVolumeSource, error) {
 	for driverName, curPlugin := range inTreePlugins {
 		if source.Driver == driverName {
 			return curPlugin.TranslateToInTree(source)

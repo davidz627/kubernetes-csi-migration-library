@@ -16,22 +16,21 @@ package plugins
 
 import (
 	"k8s.io/api/core/v1"
-	"k8s.io/kubernetes/pkg/volume"
 )
 
 type InTreePlugin interface {
 	// TranslateToCSI takes a volume.Spec and will translate it to a
 	// CSIPersistentVolumeSource if the translation logic for that
 	// specific in-tree volume spec has been implemented
-	TranslateToCSI(spec *volume.Spec) (*v1.CSIPersistentVolumeSource, error)
+	TranslateToCSI(spec *v1.PersistentVolumeSource) (*v1.CSIPersistentVolumeSource, error)
 
 	// TranslateToIntree takes a CSIPersistentVolumeSource and will translate
 	// it to a volume.Spec for the specific in-tree volume specified by
 	//`inTreePlugin`, if that translation logic has been implemented
-	TranslateToInTree(source *v1.CSIPersistentVolumeSource) (*volume.Spec, error)
+	TranslateToInTree(source *v1.CSIPersistentVolumeSource) (*v1.PersistentVolumeSource, error)
 
 	// CanSupport tests whether the plugin supports a given volume
 	// specification from the API.  The spec pointer should be considered
 	// const.
-	CanSupport(spec *volume.Spec) bool
+	CanSupport(spec *v1.PersistentVolumeSource) bool
 }
