@@ -22,12 +22,12 @@ type InTreePlugin interface {
 	// TranslateToCSI takes a volume.Spec and will translate it to a
 	// CSIPersistentVolumeSource if the translation logic for that
 	// specific in-tree volume spec has been implemented
-	TranslateToCSI(spec *v1.PersistentVolumeSource) (*v1.CSIPersistentVolumeSource, error)
+	TranslatePVSourceToCSI(spec *v1.PersistentVolumeSource) (*v1.CSIPersistentVolumeSource, error)
 
 	// TranslateToIntree takes a CSIPersistentVolumeSource and will translate
 	// it to a volume.Spec for the specific in-tree volume specified by
 	//`inTreePlugin`, if that translation logic has been implemented
-	TranslateToInTree(source *v1.CSIPersistentVolumeSource) (*v1.PersistentVolumeSource, error)
+	TranslatePVSourceToInTree(source *v1.CSIPersistentVolumeSource) (*v1.PersistentVolumeSource, error)
 
 	// CanSupport tests whether the plugin supports a given volume
 	// specification from the API.  The spec pointer should be considered

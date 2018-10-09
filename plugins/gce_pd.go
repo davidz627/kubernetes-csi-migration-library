@@ -32,7 +32,7 @@ type GCEPD struct{}
 // TranslateToCSI takes a volume.Spec and will translate it to a
 // CSIPersistentVolumeSource if the translation logic for that
 // specific in-tree volume spec has been implemented
-func (g *GCEPD) TranslateToCSI(pvSource *v1.PersistentVolumeSource) (*v1.CSIPersistentVolumeSource, error) {
+func (g *GCEPD) TranslatePVSourceToCSI(pvSource *v1.PersistentVolumeSource) (*v1.CSIPersistentVolumeSource, error) {
 	// TODO: Check PV Failure domain zone, theres a util function "isregionalPD" or something
 	// that can tell me whether this is regional or not
 	if pvSource != nil && pvSource.GCEPersistentDisk != nil {
@@ -54,7 +54,7 @@ func (g *GCEPD) TranslateToCSI(pvSource *v1.PersistentVolumeSource) (*v1.CSIPers
 // TranslateToIntree takes a CSIPersistentVolumeSource and will translate
 // it to a volume.Spec for the specific in-tree volume specified by
 //`inTreePlugin`, if that translation logic has been implemented
-func (g *GCEPD) TranslateToInTree(source *v1.CSIPersistentVolumeSource) (*v1.PersistentVolumeSource, error) {
+func (g *GCEPD) TranslatePVSourceToInTree(source *v1.CSIPersistentVolumeSource) (*v1.PersistentVolumeSource, error) {
 	key, err := common.VolumeIDToKey(source.VolumeHandle)
 	if err != nil {
 		return nil, fmt.Errorf("failed to translate volume handle %v to key: %v", source.VolumeHandle, err)

@@ -40,11 +40,11 @@ func TestTranslationStability(t *testing.T) {
 	}
 	for _, test := range testCases {
 		t.Logf("Testing %v", test.name)
-		csiSource, err := TranslateToCSI(test.source)
+		csiSource, err := TranslatePVSourceToCSI(test.source)
 		if err != nil {
 			t.Errorf("Error when translating to CSI: %v", err)
 		}
-		newSpec, err := TranslateToInTree(csiSource)
+		newSpec, err := TranslatePVSourceToInTree(csiSource)
 		if err != nil {
 			t.Errorf("Error when translating CSI Source to in tree volume: %v", err)
 		}
