@@ -23,33 +23,38 @@ import (
 
 func TestTranslationStability(t *testing.T) {
 	testCases := []struct {
-		name   string
-		source *v1.PersistentVolumeSource
+		name string
+		pv   *v1.PersistentVolume
 	}{
+
 		{
 			name: "GCE PD PV Source",
-			source: &v1.PersistentVolumeSource{
-				GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
-					PDName:    "test-disk",
-					FSType:    "ext4",
-					Partition: 0,
-					ReadOnly:  false,
+			pv: &v1.PersistentVolume{
+				Spec: v1.PersistentVolumeSpec{
+					PersistentVolumeSource: v1.PersistentVolumeSource{
+						GCEPersistentDisk: &v1.GCEPersistentDiskVolumeSource{
+							PDName:    "test-disk",
+							FSType:    "ext4",
+							Partition: 0,
+							ReadOnly:  false,
+						},
+					},
 				},
 			},
 		},
 	}
 	for _, test := range testCases {
 		t.Logf("Testing %v", test.name)
-		csiSource, err := TranslatePVSourceToCSI(test.source)
+		csiSource, err := TranslateInTreePVToCSI(test.pv)
 		if err != nil {
 			t.Errorf("Error when translating to CSI: %v", err)
 		}
-		newSpec, err := TranslatePVSourceToInTree(csiSource)
+		newPV, err := TranslateCSIPVToInTree(csiSource)
 		if err != nil {
 			t.Errorf("Error when translating CSI Source to in tree volume: %v", err)
 		}
-		if !reflect.DeepEqual(newSpec, test.source) {
-			t.Errorf("Volumes after translation and back not equal:\n\nOriginal Volume: %#v\n\nRound-trip Volume: %#v", test.source, newSpec)
+		if !reflect.DeepEqual(newPV, test.pv) {
+			t.Errorf("Volumes after translation and back not equal:\n\nOriginal Volume: %#v\n\nRound-trip Volume: %#v", test.pv, newPV)
 		}
 	}
 

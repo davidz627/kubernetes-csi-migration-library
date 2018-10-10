@@ -30,23 +30,29 @@ var (
 // TranslateToCSI takes a volume.Spec and will translate it to a
 // CSIPersistentVolumeSource if the translation logic for that
 // specific in-tree volume spec has been implemented
-func TranslatePVSourceToCSI(source *v1.PersistentVolumeSource) (*v1.CSIPersistentVolumeSource, error) {
+func TranslateInTreePVToCSI(pv *v1.PersistentVolume) (*v1.PersistentVolume, error) {
+	if pv == nil {
+		return nil, fmt.Errorf("persistent volume was nil")
+	}
 	for _, curPlugin := range inTreePlugins {
-		if curPlugin.CanSupport(source) {
-			return curPlugin.TranslatePVSourceToCSI(source)
+		if curPlugin.CanSupport(pv) {
+			return curPlugin.TranslateInTreePVToCSI(pv)
 		}
 	}
-	return nil, fmt.Errorf("could not find in-tree plugin translation logic for %#v", source)
+	return nil, fmt.Errorf("could not find in-tree plugin translation logic for %#v", pv.Name)
 }
 
 // TranslateToIntree takes a CSIPersistentVolumeSource and will translate
 // it to a volume.Spec for the specific in-tree volume specified by
 //`inTreePlugin`, if that translation logic has been implemented
-func TranslatePVSourceToInTree(source *v1.CSIPersistentVolumeSource) (*v1.PersistentVolumeSource, error) {
+func TranslateCSIPVToInTree(pv *v1.PersistentVolume) (*v1.PersistentVolume, error) {
+	if pv == nil || pv.Spec.CSI == nil {
+		return nil, fmt.Errorf("CSI persistent volume was nil")
+	}
 	for driverName, curPlugin := range inTreePlugins {
-		if source.Driver == driverName {
-			return curPlugin.TranslatePVSourceToInTree(source)
+		if pv.Spec.CSI.Driver == driverName {
+			return curPlugin.TranslateCSIPVToInTree(pv)
 		}
 	}
-	return nil, fmt.Errorf("could not find in-tree plugin translation logic for %s", source.Driver)
+	return nil, fmt.Errorf("could not find in-tree plugin translation logic for %s", pv.Spec.CSI.Driver)
 }
