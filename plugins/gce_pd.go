@@ -19,12 +19,18 @@ import (
 	"strconv"
 
 	"k8s.io/api/core/v1"
-
-	"sigs.k8s.io/gcp-compute-persistent-disk-csi-driver/pkg/common"
 )
 
 const (
 	GCEPDDriverName = "com.google.csi.gcepd"
+
+	// Volume ID Expected Format
+	// "projects/{projectName}/zones/{zoneName}/disks/{diskName}"
+	volIDZonalFmt = "projects/%s/zones/%s/disks/%s"
+	// "projects/{projectName}/regions/{regionName}/disks/{diskName}"
+	volIDRegionalFmt = "projects/%s/regions/%s/disks/%s"
+
+	UnspecifiedValue = "UNSPECIFIED"
 )
 
 type GCEPD struct{}
@@ -39,7 +45,7 @@ func (g *GCEPD) TranslatePVSourceToCSI(pvSource *v1.PersistentVolumeSource) (*v1
 		pdSource := pvSource.GCEPersistentDisk
 		csiSource := &v1.CSIPersistentVolumeSource{
 			Driver:       GCEPDDriverName,
-			VolumeHandle: common.GenerateUnderspecifiedVolumeID(pdSource.PDName, true /* isZonal */),
+			VolumeHandle: generateUnderspecifiedVolumeID(pdSource.PDName, true /* isZonal */),
 			ReadOnly:     pdSource.ReadOnly,
 			FSType:       pdSource.FSType,
 			VolumeAttributes: map[string]string{
@@ -82,4 +88,13 @@ func (g *GCEPD) TranslatePVSourceToInTree(source *v1.CSIPersistentVolumeSource) 
 // const.
 func (g *GCEPD) CanSupport(source *v1.PersistentVolumeSource) bool {
 	return (source != nil && source.GCEPersistentDisk != nil)
+}
+
+// TODO: Replace this with the imported one from GCE PD CSI Driver when
+// the driver removes all k8s/k8s dependencies
+func generateUnderspecifiedVolumeID(diskName string, isZonal bool) string {
+	if isZonal {
+		return fmt.Sprintf(volIDZonalFmt, UnspecifiedValue, UnspecifiedValue, diskName)
+	}
+	return fmt.Sprintf(volIDRegionalFmt, UnspecifiedValue, UnspecifiedValue, diskName)
 }

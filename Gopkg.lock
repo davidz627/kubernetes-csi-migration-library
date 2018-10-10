@@ -26,11 +26,9 @@
   revision = "44d81051d367757e1c7c6a5a86423ece9afcf63c"
 
 [[projects]]
-  digest = "1:546efc585d0b3b4ef026faa94ae2d3211c1744d517841a27c83905e18fd0828d"
+  digest = "1:d1a6ebe75268a41b6fbb1d43947cf8688d8580423b7484fa5ae608beef6df24d"
   name = "golang.org/x/net"
   packages = [
-    "context",
-    "context/ctxhttp",
     "http2",
     "http2/hpack",
     "idna",
@@ -61,21 +59,6 @@
   pruneopts = "NUT"
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:13dfe859165e349c94aeabd646e8bbfb4ac89f0da52707c8959cbad4c6556e82"
-  name = "google.golang.org/api"
-  packages = [
-    "compute/v0.alpha",
-    "compute/v0.beta",
-    "compute/v1",
-    "gensupport",
-    "googleapi",
-    "googleapi/internal/uritemplates",
-  ]
-  pruneopts = "NUT"
-  revision = "c21459d81882ee61fcd6631fb94dbd9a29bd4377"
 
 [[projects]]
   digest = "1:ef72505cf098abdd34efeea032103377bec06abb61d8a06f002d5d296a4b1185"
@@ -123,28 +106,9 @@
   pruneopts = "NUT"
   revision = "def12e63c512da17043b4f0293f52d1006603d9f"
 
-[[projects]]
-  digest = "1:e119ad70cff2f6067b20f45bddde7e6e6706fa6c1c71be00883d712362329cf3"
-  name = "k8s.io/kubernetes"
-  packages = ["pkg/cloudprovider/providers/gce/cloud/meta"]
-  pruneopts = "NUT"
-  revision = "4ed3216f3ec431b140b1d899130a69fc671678f4"
-  version = "v1.12.1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:e57f1edfe1e847b88181a9a29b722c032a7954dcc752831191cd8dad544a6251"
-  name = "sigs.k8s.io/gcp-compute-persistent-disk-csi-driver"
-  packages = ["pkg/common"]
-  pruneopts = "NUT"
-  revision = "52913150adbe354fbc7050ffbb667ffbb39e1a26"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = [
-    "k8s.io/api/core/v1",
-    "sigs.k8s.io/gcp-compute-persistent-disk-csi-driver/pkg/common",
-  ]
+  input-imports = ["k8s.io/api/core/v1"]
   solver-name = "gps-cdcl"
   solver-version = 1
