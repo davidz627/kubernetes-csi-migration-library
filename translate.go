@@ -25,10 +25,6 @@ var (
 	inTreePlugins = map[string]plugins.InTreePlugin{
 		plugins.GCEPDDriverName: &plugins.GCEPD{},
 	}
-
-	translatedPlugins = map[string]string{
-		"kubernetes.io/gce-pd": plugins.GCEPDDriverName,
-	}
 )
 
 // TranslateToCSI takes a volume.Spec and will translate it to a
@@ -64,8 +60,10 @@ func TranslateCSIPVToInTree(pv *v1.PersistentVolume) (*v1.PersistentVolume, erro
 }
 
 func IsMigratedByName(pluginName string) bool {
-	if _, ok := translatedPlugins[pluginName]; ok {
-		return true
+	for _, curPlugin := range inTreePlugins {
+		if curPlugin.InTreePluginName() == pluginName {
+			return true
+		}
 	}
 	return false
 }

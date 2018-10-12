@@ -33,4 +33,7 @@ type InTreePlugin interface {
 	// specification from the API.  The spec pointer should be considered
 	// const.
 	CanSupport(pv *v1.PersistentVolume) bool
+
+	// GetInTreePluginName returns the in-tree plugin name this migrates
+	GetInTreePluginName() string
 }

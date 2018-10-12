@@ -25,7 +25,9 @@ import (
 
 const (
 	// GCE PD CSI driver constants
-	GCEPDDriverName  = "com.google.csi.gcepd"
+	GCEPDDriverName       = "com.google.csi.gcepd"
+	GCEPDInTreePluginName = "kubernetes.io/gce-pd"
+
 	UnspecifiedValue = "UNSPECIFIED"
 	// Volume ID Expected Format
 	// "projects/{projectName}/zones/{zoneName}/disks/{diskName}"
@@ -126,6 +128,10 @@ func (g *GCEPD) TranslateCSIPVToInTree(pv *v1.PersistentVolume) (*v1.PersistentV
 // const.
 func (g *GCEPD) CanSupport(pv *v1.PersistentVolume) bool {
 	return pv != nil && pv.Spec.GCEPersistentDisk != nil
+}
+
+func (g *GCEPD) GetInTreePluginName() string {
+	return GCEPDInTreePluginName
 }
 
 func pdNameFromVolumeID(id string) (string, error) {
